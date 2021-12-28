@@ -20,7 +20,6 @@ function EditAvatarPopup(props) {
       <label className="popup__input-label">
         <input className="popup__input popup__input_content_profile-image" type="url" name="link" id="input-avatar"
           placeholder="Image link" required
-            //  onChange={handleInputImageChange}
            ref={imageInput} />
         <span className="popup__input-error input-avatar-error" />
       </label>

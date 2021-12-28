@@ -1,7 +1,11 @@
-import React from 'react'
-import logo from '../images/logo/logo.svg'
+import { React } from 'react';
+import { Link } from 'react-router-dom';
+import logo from '../images/logo/logo.svg';
 
-function Header() {
+function Header(props) {
+
+  const { email, linkPath, linkTitle, onLogout } = props
+
   return (
     <div className="header">
       <img
@@ -9,6 +13,10 @@ function Header() {
         alt="around the US logo"
         className="header__logo"
       />
+      <div className='header__container'>
+        <p className='header__email'>{email}</p>
+        <Link className='header__link' to={linkPath} onClick={onLogout} >{linkTitle}</Link>
+      </div>
     </div>
   )
 }
