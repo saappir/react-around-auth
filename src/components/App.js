@@ -37,7 +37,7 @@ function App() {
   React.useEffect(() => {
     api.getUserinfo()
       .then(setUserState)
-      .catch(err => console.error('user info error', err));
+      .catch(error => console.error('user info error', error));
   }, []);
 
   React.useEffect(() => {
@@ -96,15 +96,18 @@ function App() {
       .then(() => {
         setMessage(true)
       })
-      .catch((err, res) => {
+      .catch((error) => {
         setMessage(false)
-        if (err.statusCode === 400) {
-          res.status(400).send('one of the fields was filled in incorrectly')
+        if (error === 'Bad Request') {
+          console.error('400 - one of the fields was filled in incorrectly', error)
         } else {
-          res.status(500).send('an error occured')
+          console.error('500 - an error occured', error)
         }
       })
-      .finally(() => setIsInfoTooltipOpen(true))
+      .finally(() => {
+        setIsInfoTooltipOpen(true)
+        history.push('/')
+      })
   }
 
   const handleLogin = ({ email, password }) => {
@@ -118,13 +121,15 @@ function App() {
         }
         tokenCheck();
       })
-      .catch((err, res) => {
-        if (err.statusCode === 400) {
-          res.status(400).send('one or more of the fields were not provided')
-        } else if (err.statusCode === 401) {
-          res.status(401).send('the user with the specified email not found')
+      .catch((error) => {
+        setMessage(false)
+        setIsInfoTooltipOpen(true)
+        if (error === 'Bad Request') {
+          console.error('400 - one or more of the fields were not provided', error)
+        } else if (error === 'Unauthorized') {
+          console.error('401 - the user with the specified email not found', error)
         } else {
-          res.status(500).send('an error occured')
+          console.error('500 - an error occured', error)
         }
       })
       .finally(() => history.push('/'))
@@ -135,20 +140,19 @@ function App() {
     if (token) {
       auth.getContent(token)
         .then((res) => {
-          (console.log(res));
           if (res) {
             setEmail(res.data.email)
             setLoggedIn(true)
             history.push('/');
           }
         })
-        .catch((err, res) => {
-          if (err.statusCode === 400) {
-            res.status(400).send('Token not provided or provided in the wrong format')
-          } else if (err.statusCode === 401) {
-            res.status(401).send('The provided token is invalid')
+        .catch((error) => {
+          if (error === 'Bad Request') {
+            console.error('400 - Token not provided or provided in the wrong format', error)
+          } else if (error === 'Unauthorized') {
+            console.error('401 - The provided token is invalid', error)
           } else {
-            res.status(500).send('an error occured')
+            console.error('500 - an error occured', error)
           }
         })
     }
@@ -189,41 +193,44 @@ function App() {
   return (
     <CurrentUserContext.Provider value={currentUser}>
       <div className="page">
+
         <Switch>
           <Route path='/signup'>
             <Header loggedIn={loggedIn} linkPath='/signin' linkTitle='Log in' />
             <Register onRegister={handleRegister} />
+            <InfoTooltip loggedIn={loggedIn} onClose={closeAllPopups} isOpen={isInfoTooltipOpen} message={message} />
+
           </Route>
           <Route path='/signin'>
             <Header loggedIn={loggedIn} linkPath='/signup' linkTitle='Sign up' />
             <Login onLogin={handleLogin} />
+            <InfoTooltip loggedIn={loggedIn} onClose={closeAllPopups} isOpen={isInfoTooltipOpen} message={message} />
+
           </Route>
+          <ProtectedRoute loggedIn={loggedIn} exact path='/' >
+            <Header loggedIn={loggedIn} onLogout={handleLogout} email={email} linkPath='/signup' linkTitle='Log out' />
+            <Main
+              onEditProfileClick={handleEditProfileClick}
+              onAddPlaceClick={handleAddPlaceClick}
+              onEditAvatarClick={handleEditAvatarClick}
+              onCardClick={handleCardClick}
+              closeAllPopups={closeAllPopups}
+              handleCardLike={handleCardLike}
+              handleCardDelete={handleCardDelete}
+              cards={cards}
+              currentUser={currentUser}
+            />
+          </ProtectedRoute>
         </Switch>
-        <ProtectedRoute loggedIn={loggedIn} exact path='/' >
-          <Header loggedIn={loggedIn} onLogout={handleLogout} email={email} linkPath='/signup' linkTitle='Log out' />
 
-          <Main
-            onEditProfileClick={handleEditProfileClick}
-            onAddPlaceClick={handleAddPlaceClick}
-            onEditAvatarClick={handleEditAvatarClick}
-            onCardClick={handleCardClick}
-            closeAllPopups={closeAllPopups}
-            handleCardLike={handleCardLike}
-            handleCardDelete={handleCardDelete}
-            cards={cards}
-            currentUser={currentUser}
-          />
+        <ProtectedRoute loggedIn={loggedIn}>
           {loggedIn && <Footer />}
-
-          <InfoTooltip loggedIn={loggedIn} onClose={closeAllPopups} isOpen={isInfoTooltipOpen} message={message} />
-
           <EditProfilePopup isOpen={isEditProfilePopupOpen} onClose={closeAllPopups} onUpdateUser={handleUpdateUser} />
           <EditAvatarPopup isOpen={isEditAvatarPopupOpen} onClose={closeAllPopups} onUpdateAvatar={handleUpdateAvatar} />
           <AddPlacePopup isOpen={isAddPlacePopupOpen} onClose={closeAllPopups} onAddPlace={handleAddPlace} />
           <PopupWithForm name="delete" title="Are you sure?" submitText="Yes" onClose={closeAllPopups} />
           <ImagePopup card={selectedCard} isOpen={isImagePopupOpen} onClose={closeAllPopups} />
         </ProtectedRoute>
-
       </div>
     </CurrentUserContext.Provider >
   )

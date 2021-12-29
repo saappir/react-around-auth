@@ -13,7 +13,6 @@ export const register = ({ email, password }) => {
     body: JSON.stringify({ email, password }),
   })
     .then((res) => resHandler(res))
-    .catch((err) => console.log(err));
 };
 
 export const login = ({ email, password }) => {
