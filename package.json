@@ -1,7 +1,7 @@
 {
   "name": "around-react",
   "version": "0.1.0",
-  "homepage": "https://saappir.github.io/around-react",
+  "homepage": "https://saappir.students.nomoreparties.sbs",
   "private": true,
   "dependencies": {
     "@testing-library/jest-dom": "^5.15.1",
